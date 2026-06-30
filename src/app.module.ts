@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { BullModule } from '@nestjs/bullmq';
+import { ImageModule } from './image/image.module';
 
 @Module({
   imports: [BullModule.forRoot({
@@ -9,7 +10,7 @@ import { BullModule } from '@nestjs/bullmq';
       host: "localhost",
       port: 6379
     }
-  })],
+  }), ImageModule],
   controllers: [AppController],
   providers: [AppService],
 })
