@@ -1,6 +1,6 @@
 export enum ImageJobStatus {
-  PENDING = 'pending',
-  PROCESSING = 'processing',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
+  waiting = 'pending',
+  active = 'processing',
+  completed = 'completed',
+  failed = 'failed',
 }
