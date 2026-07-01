@@ -1,8 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, StreamableFile } from "@nestjs/common";
 import { DataDelete, ImageStorageServiceItf } from "./image-storage.service.interface";
 import { extname, join } from "path";
-import { STORAGE_DIR, UPLOAD_DIR } from "../constants/image.constants";
-import { unlink, writeFile } from "fs/promises";
+import { PROCESSED_DIR, STORAGE_DIR, UPLOAD_DIR } from "../constants/image.constants";
+import { access, unlink, writeFile } from "fs/promises";
+import { createReadStream } from "fs";
+import { ProcessedImageNotFoundException } from "../exceptions/processed-image-not-found.exception";
 
 
 @Injectable()
@@ -17,7 +19,19 @@ export class ImageStorageService implements ImageStorageServiceItf  {
         await unlink(data.uploadPath);
         await unlink(data.processedPath);
     }
-}
 
-// for download
-// return new StreamableFile(createReadStream(filePath));
+    async exist(jobId: string): Promise<void> {
+        try {
+            const processedPath = join(process.cwd(), STORAGE_DIR, PROCESSED_DIR, `${jobId}.webp`);
+            await access(processedPath)
+        } catch (error) {
+            throw new ProcessedImageNotFoundException();
+        }
+
+    }
+
+    async download(jobId: string): Promise<StreamableFile> {
+        const processedPath = join(process.cwd(), STORAGE_DIR, PROCESSED_DIR, `${jobId}.webp`);
+        return new StreamableFile(createReadStream(processedPath));
+    }
+}
