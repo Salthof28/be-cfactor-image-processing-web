@@ -1,5 +1,5 @@
 import { InjectQueue } from '@nestjs/bullmq';
-import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException, StreamableFile } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import { randomUUID } from 'crypto';
 import { ALLOWED_IMAGE_MIMETYPES, IMAGE_PROCESS_MESSAGES, MAX_SIZE_IMAGE } from './constants/image.constants';
@@ -9,7 +9,7 @@ import { ImageServiceItf } from './image.service.interface';
 import { ImageJobStatus } from './enums/image-job-status.enum';
 import { StatusImageDto } from './dto/res/status-image.dto';
 import { ImageStorageServiceItf } from './services/image-storage.service.interface';
-import { stat } from 'fs';
+import { ProcessedImageNotFoundException } from './exceptions/processed-image-not-found.exception';
 
 @Injectable()
 export class ImageService implements ImageServiceItf {
@@ -23,41 +23,40 @@ export class ImageService implements ImageServiceItf {
         const imageCompress = await this.imageQueue.add('compress', {
             jobId,
             uploadPath
-        }, { jobId });
+        }, { 
+            jobId,
+            removeOnComplete: {
+                age: 30 * 60
+            },
+            removeOnFail: {
+                age: 5 * 60
+            }
+        });
         const state = await imageCompress.getState()
         return {
             jobId,
-            status: this.mapJobStatus(state),
+            status: ImageJobStatus[state],
             message: IMAGE_PROCESS_MESSAGES[state]
         }
     }
 
     async checkStatus(jobId: string): Promise<StatusImageDto> {
         const job = await this.imageQueue.getJob(jobId)
-        if(!job) throw new BadRequestException('jobId not exist')
+        if(!job) throw new ProcessedImageNotFoundException()
         const state = await job.getState()
         const message = state === 'failed' ? job.failedReason : IMAGE_PROCESS_MESSAGES[state]
         return {
             jobId,
-            status: this.mapJobStatus(state),
+            status: ImageJobStatus[state],
             message
         }
     }
-    
-    private mapJobStatus(state: string): ImageJobStatus {
-        switch(state) {
-            case 'waiting':
-                return ImageJobStatus.PENDING;
-            case 'active':
-                return ImageJobStatus.PROCESSING;
-            case 'completed':
-                return ImageJobStatus.COMPLETED;
-            case 'failed':
-                return ImageJobStatus.FAILED;
-            default:
-                throw new InternalServerErrorException(`Unsupported BullMQ status: ${state}`);
-        }
-    }
 
+    async download(jobId: string): Promise<StreamableFile> {
+        await this.imageStorageService.exist(jobId);
+        const response: StreamableFile = await this.imageStorageService.download(jobId);
+        return response
+    }
+    
 }
 
