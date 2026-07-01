@@ -3,6 +3,7 @@ import { HttpAdapterHost } from "@nestjs/core";
 import { CustomExceptionGen } from "../exception/exception.general";
 import { FileNotAllowedException } from "src/image/exceptions/file-not-allowed.exception";
 import { FileTooBigException } from "src/image/exceptions/file-too-big.exception";
+import { ProcessedImageNotFoundException } from "src/image/exceptions/processed-image-not-found.exception";
 
 @Catch(CustomExceptionGen)
 export class ExceptionFilterGen implements ExceptionFilter {
@@ -25,14 +26,20 @@ export class ExceptionFilterGen implements ExceptionFilter {
                 error: exception.name,
                 statusCode: HttpStatus.BAD_REQUEST
             }
-        }
-        else if(exception instanceof FileTooBigException) {
+        } else if(exception instanceof FileTooBigException) {
             responseBody = {
                 message: exception.message,
                 error: exception.name,
                 statusCode: HttpStatus.BAD_REQUEST,
             }
+        } else if(exception instanceof ProcessedImageNotFoundException) {
+            responseBody = {
+                message: exception.message,
+                error: exception.name,
+                statusCode: HttpStatus.NOT_FOUND,
+            }
         }
+
         httpAdapter.reply(res, responseBody, responseBody.statusCode)
     }
 }
