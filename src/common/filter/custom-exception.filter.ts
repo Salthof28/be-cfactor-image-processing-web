@@ -1,6 +1,8 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from "@nestjs/common";
 import { HttpAdapterHost } from "@nestjs/core";
 import { CustomExceptionGen } from "../exception/exception.general";
+import { FileNotAllowedException } from "src/image/exceptions/file-not-allowed.exception";
+import { FileTooBigException } from "src/image/exceptions/file-too-big.exception";
 
 @Catch(CustomExceptionGen)
 export class ExceptionFilterGen implements ExceptionFilter {
@@ -17,20 +19,20 @@ export class ExceptionFilterGen implements ExceptionFilter {
             statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
         }
 
-        // if(exception instanceof DatabaseException) {
-        //     responseBody = {
-        //         message: exception.message,
-        //         error: exception.name,
-        //         statusCode: HttpStatus.BAD_REQUEST,
-        //     }
-        // }
-        // else if(exception instanceof EmailRegisteredException) {
-        //     responseBody = {
-        //         message: exception.message,
-        //         error: exception.name,
-        //         statusCode: HttpStatus.CONFLICT,
-        //     }
-        // }
+        if(exception instanceof FileNotAllowedException) {
+            responseBody = {
+                message: exception.message,
+                error: exception.name,
+                statusCode: HttpStatus.BAD_REQUEST
+            }
+        }
+        else if(exception instanceof FileTooBigException) {
+            responseBody = {
+                message: exception.message,
+                error: exception.name,
+                statusCode: HttpStatus.BAD_REQUEST,
+            }
+        }
         httpAdapter.reply(res, responseBody, responseBody.statusCode)
     }
 }
