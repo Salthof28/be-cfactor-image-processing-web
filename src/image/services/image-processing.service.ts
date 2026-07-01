@@ -26,6 +26,6 @@ export class ImageProcessingService implements ImageProcessingServiceItf  {
             jobId: data.jobId,
             uploadPath: data.uploadPath,
             processedPath
-        }, { delay: 10 * 1000 })
+        }, { delay: 10 * 60 * 1000 })
     }
 }
