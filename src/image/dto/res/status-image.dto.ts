@@ -7,4 +7,7 @@ export class StatusImageDto {
 
     @Expose()
     status: ImageJobStatus
+
+    @Expose()
+    message: string
 }
