@@ -1,4 +1,4 @@
-import { Controller, Inject, InternalServerErrorException, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Inject, InternalServerErrorException, Param, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CustomExceptionGen } from 'src/common/exception/exception.general';
 import { StatusImageDto } from './dto/res/status-image.dto';
@@ -16,6 +16,16 @@ export class ImageController {
     } catch (error) {
       if(error instanceof CustomExceptionGen) throw error;
       throw new InternalServerErrorException(error.message)
+    }
+  }
+
+  @Get(':jobId')
+  async getStatus(@Param('jobId') jobId: string): Promise<StatusImageDto> {
+    try{
+      return await this.imageService.checkStatus(jobId)
+    } catch (error) {
+      if(error instanceof CustomExceptionGen) throw error;
+      throw new InternalServerErrorException(error.message);
     }
   }
 }
