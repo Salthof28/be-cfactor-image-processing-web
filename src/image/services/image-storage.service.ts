@@ -1,28 +1,30 @@
-import { Injectable, StreamableFile } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { DataDelete, ImageStorageServiceItf } from "./image-storage.service.interface";
-import { extname, join } from "path";
+import { dirname, join } from "path";
 import { PROCESSED_DIR, STORAGE_DIR, UPLOAD_DIR } from "../constants/image.constants";
-import { access, unlink, writeFile } from "fs/promises";
-import { createReadStream } from "fs";
+import { access, rm, writeFile } from "fs/promises";
+import { createReadStream, mkdirSync, readdirSync, ReadStream } from "fs";
 import { ProcessedImageNotFoundException } from "../exceptions/processed-image-not-found.exception";
 
 
 @Injectable()
 export class ImageStorageService implements ImageStorageServiceItf  {
     async upload(img: Express.Multer.File, jobId: string): Promise<string> {
-        const uploadPath = join(process.cwd(), STORAGE_DIR, UPLOAD_DIR, `${jobId}${extname(img.originalname)}`);
+        const folderJobPath = join(process.cwd(), STORAGE_DIR, UPLOAD_DIR, jobId);
+        mkdirSync(folderJobPath, { recursive: true });
+        const uploadPath = join(folderJobPath, img.originalname);
         await writeFile(uploadPath, img.buffer);
         return uploadPath;
     }
 
     async delete(data: DataDelete): Promise<void> {
-        await unlink(data.uploadPath);
-        await unlink(data.processedPath);
+        await rm(dirname(data.uploadPath), { recursive: true, force: true });
+        await rm(dirname(data.processedPath), { recursive: true, force: true });
     }
 
     async exist(jobId: string): Promise<void> {
         try {
-            const processedPath = join(process.cwd(), STORAGE_DIR, PROCESSED_DIR, `${jobId}.webp`);
+            const processedPath = join(process.cwd(), STORAGE_DIR, PROCESSED_DIR, jobId);
             await access(processedPath)
         } catch (error) {
             throw new ProcessedImageNotFoundException();
@@ -30,8 +32,24 @@ export class ImageStorageService implements ImageStorageServiceItf  {
 
     }
 
-    async download(jobId: string): Promise<StreamableFile> {
-        const processedPath = join(process.cwd(), STORAGE_DIR, PROCESSED_DIR, `${jobId}.webp`);
-        return new StreamableFile(createReadStream(processedPath));
+    async download(jobId: string): Promise<{ stream: ReadStream; fileName: string }> {
+        const processedPath = join(process.cwd(), STORAGE_DIR, PROCESSED_DIR, jobId);
+        try {
+            const files = readdirSync(processedPath);
+            
+            if (!files || files.length === 0) {
+                throw new ProcessedImageNotFoundException();
+            }
+
+            // 4. Rakit jalur lengkap menggunakan nama file dinamis yang berhasil diintip tadi
+            const fileName: string = files[0];
+            const finalProcessedPath = join(processedPath, fileName);
+            return {
+                stream: createReadStream(finalProcessedPath),
+                fileName: fileName
+            };
+        } catch (error) {
+            throw new ProcessedImageNotFoundException();
+        }
     }
 }

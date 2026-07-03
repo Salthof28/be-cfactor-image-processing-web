@@ -1,5 +1,5 @@
 import { InjectQueue } from '@nestjs/bullmq';
-import { BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException, StreamableFile } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import { randomUUID } from 'crypto';
 import { ALLOWED_IMAGE_MIMETYPES, IMAGE_PROCESS_MESSAGES, MAX_SIZE_IMAGE } from './constants/image.constants';
@@ -10,6 +10,7 @@ import { ImageJobStatus } from './enums/image-job-status.enum';
 import { StatusImageDto } from './dto/res/status-image.dto';
 import { ImageStorageServiceItf } from './services/image-storage.service.interface';
 import { ProcessedImageNotFoundException } from './exceptions/processed-image-not-found.exception';
+import { ReadStream } from 'fs';
 
 @Injectable()
 export class ImageService implements ImageServiceItf {
@@ -52,9 +53,9 @@ export class ImageService implements ImageServiceItf {
         }
     }
 
-    async download(jobId: string): Promise<StreamableFile> {
+    async download(jobId: string): Promise<{ stream: ReadStream; fileName: string }> {
         await this.imageStorageService.exist(jobId);
-        const response: StreamableFile = await this.imageStorageService.download(jobId);
+        const response: { stream: ReadStream; fileName: string } = await this.imageStorageService.download(jobId);
         return response
     }
     

@@ -1,5 +1,3 @@
-import { Job } from "bullmq";
-
 export interface ImageProcessingServiceItf {
     compress(data: DataImage): Promise<void>
 }

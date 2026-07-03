@@ -1,9 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { DataImage, ImageProcessingServiceItf } from "./image-processing.service.interface";
 import { PROCESSED_DIR, STORAGE_DIR } from "../constants/image.constants";
-import { join } from "path";
+import { basename, join } from "path";
 import { Queue } from "bullmq";
 import { InjectQueue } from "@nestjs/bullmq";
+import { mkdirSync } from "fs";
 
 const sharp = require('sharp');
 
@@ -12,7 +13,10 @@ export class ImageProcessingService implements ImageProcessingServiceItf  {
     constructor(@InjectQueue('imageProcessQueue') private imageQueue: Queue){}
     
     async compress(data: DataImage): Promise<void> {
-        const processedPath = join(process.cwd(), STORAGE_DIR, PROCESSED_DIR, `${data.jobId}.webp`);
+        const nameWithoutExt = basename(data.uploadPath).replace(/\.[^/.]+$/, "");
+        const folderJobPath = join(process.cwd(), STORAGE_DIR, PROCESSED_DIR, `${data.jobId}`);
+        mkdirSync(folderJobPath, { recursive: true });
+        const processedPath = join(folderJobPath, `compressed-${nameWithoutExt}.webp`);
         await sharp(data.uploadPath)
             .resize({ 
                 width: 1280,
