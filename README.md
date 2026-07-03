@@ -56,7 +56,7 @@ src/
 
 Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/Salthof28/be-cfactor-image-processing-web.git
 cd be-cfactor-image-processing-web
 ```
 Install dependencies:
@@ -255,3 +255,8 @@ The application returns appropriate HTTP status codes for common scenarios, incl
 ## License
 
 This project is created for technical assessment purposes.
+
+---
+
+## Author
+🔧 Salman Althof
