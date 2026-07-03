@@ -1,98 +1,257 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# CFactor Image Processing Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend service built with **NestJS** and **BullMQ** for asynchronous image processing. The application accepts image uploads, compresses and converts them to **WebP** format in the background, provides job status tracking, and allows downloading the processed image.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features
 
-## Description
+* Upload image files
+* Background image processing using BullMQ
+* Resize images to a maximum of **1280px** on the longest side while preserving aspect ratio
+* Convert images to **WebP**
+* Compress images with configurable quality
+* Check processing status by `jobId`
+* Download processed images
+* Automatic deletion of uploaded and processed images
+* Automatic cleanup of BullMQ jobs from Redis
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Project setup
+## Tech Stack
 
-```bash
-$ pnpm install
+* NestJS
+* BullMQ
+* Redis
+* Sharp
+* TypeScript
+
+---
+
+## Project Structure
+
+```text
+src/
+├── common/                  # Shared exceptions, middleware, filter, and interceptors
+├── image/
+│   ├── constants/           # Image-related constants (limits, messages, etc.)
+│   ├── controller/          # HTTP controllers exposing image APIs
+│   ├── dto/                 # Request and response Data Transfer Objects
+│   ├── interfaces/          # Service interfaces and shared type definitions
+│   ├── services/            # Business logic for image processing and storage
+│   ├── image.module.ts      # Registers the image module and its dependencies
+│   ├── image.service.ts     # Coordinates image upload, job creation, status checking, and download
+│   └── image.processor.ts   # BullMQ worker that processes background jobs (compress and delete)
+└── main.ts                  # Application entry point
 ```
 
-## Compile and run the project
+---
 
+## Requirements
+
+* Node.js 22+
+* Redis
+
+---
+
+## Installation
+
+Clone the repository:
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+git clone <repository-url>
+cd be-cfactor-image-processing-web
+```
+Install dependencies:
+```bash
+pnpm install
 ```
 
-## Run tests
+---
 
-```bash
-# unit tests
-$ pnpm run test
+## Environment Variables
 
-# e2e tests
-$ pnpm run test:e2e
+Create a `.env` file in the project root with the following variables:
 
-# test coverage
-$ pnpm run test:cov
+```env
+PORT=4000 
+HOST_BULLMQ=localhost 
+PORT_BULLMQ=6379 
 ```
 
-## Deployment
+| Variable      | Description                           |
+| ------------- | ------------------------------------- |
+| `PORT`        | Port used by the NestJS application.  |
+| `HOST_BULLMQ` | Redis server hostname used by BullMQ. |
+| `PORT_BULLMQ` | Redis server port used by BullMQ.     |
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+> **Note:** Ensure the Redis server is running before starting the application, as BullMQ requires an active Redis connection to process background jobs.
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+## Running Redis
 
-Check out a few resources that may come in handy when working with NestJS:
+Start the Redis server before running the application.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+If Redis is installed locally:
 
-## Support
+```bash
+redis-server --port 6379
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Verify Redis is running:
 
-## Stay in touch
+```bash
+redis-cli ping
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Expected output:
+
+```text
+PONG
+```
+
+---
+
+## Running the Application
+
+Development
+
+```bash
+pnpm start:dev
+```
+
+Production
+
+```bash
+pnpm build
+pnpm start:prod
+```
+
+---
+
+## API Endpoints
+
+### Upload Image
+
+```http
+POST /image/upload
+```
+
+Response
+
+```json
+{
+  "jobId": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "pending",
+  "message": "Image is waiting to be processed."
+}
+```
+
+---
+
+### Check Processing Status
+
+```http
+GET /image/status/:jobId
+```
+
+Response
+
+```json
+{
+  "jobId": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "Processing",
+  "message": "Image processed successfully."
+}
+```
+
+Possible statuses:
+
+* `pending` → Image is waiting to be processed
+* `processing` → Image is currently being processed
+* `completed` → Image processing finished successfully
+* `failed` → Image processing failed
+
+---
+
+### Download Processed Image
+
+```http
+GET /image/:jobId/download
+```
+
+Response
+
+Returns the processed image as a downloadable file.
+
+> **Note:** Processed images are automatically deleted after the configured retention period. Attempting to download an expired image will return a `404 Not Found` response.
+
+---
+
+## Image Processing Flow
+
+```text
+Client
+   │
+   ▼
+Upload Image
+   │
+   ▼
+Store Original Image
+   │
+   ▼
+Create BullMQ Job
+   │
+   ▼
+Worker Processes Image
+   │
+   ├── Resize (max 1280px)
+   ├── Convert to WebP
+   └── Compress
+   │
+   ▼
+Save Processed Image
+   │
+   ▼
+Schedule Delete Job
+   │
+   ▼
+Delete Original & Processed Images
+```
+
+---
+
+## Image Processing Rules
+
+* Supported image formats are validated before processing.
+* Maximum upload size is validated before saving.
+* Images are resized while maintaining their original aspect ratio.
+* Output format is WebP.
+* Compression quality is 80%.
+* Uploaded and processed images are automatically removed after 10 minutes.
+
+---
+
+## BullMQ Job Cleanup
+
+Completed jobs are automatically removed from Redis after **30 minutes**.
+
+Failed jobs are automatically removed from Redis after **5 minutes**.
+
+Download processed images are automatically removed in storage after **10 minutes**
+
+---
+
+## Error Handling
+
+The application returns appropriate HTTP status codes for common scenarios, including:
+
+* Invalid file type
+* File size exceeds limit
+* Invalid job ID (Processed image not found)
+* Internal server errors
+
+---
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This project is created for technical assessment purposes.
