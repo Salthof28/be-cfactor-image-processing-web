@@ -1,4 +1,4 @@
-# Dependencies (Sangat berat, wajib diabaikan)
+# Dependencies 
 node_modules
 .pnpm-store
 
