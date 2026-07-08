@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, InternalServerErrorException, Param, Post, Res, StreamableFile, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Inject, InternalServerErrorException, Param, Post, StreamableFile, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CustomExceptionGen } from 'src/common/exception/exception.general';
 import { StatusImageDto } from './dto/res/status-image.dto';
