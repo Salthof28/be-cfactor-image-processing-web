@@ -35,15 +35,13 @@ export class ImageController {
   }
 
   @Get(':jobId/download')
-  async getDonwload(@Param('jobId') jobId: string, @Res({ passthrough: true }) res: Response): Promise<StreamableFile> {
+  async getDonwload(@Param('jobId') jobId: string): Promise<StreamableFile> {
     try{
       const response: { stream: ReadStream; fileName: string } = await this.imageService.download(jobId);
-      res.set({
-        'Content-Type': 'image/webp',
-        'Content-Disposition': `attachment; filename="${response.fileName}"`,
-        'Access-Control-Expose-Headers': 'Content-Disposition'
+      return new StreamableFile(response.stream, {
+        type: "image/webp",
+        disposition:`attachment; filename="${response.fileName}"`
       });
-      return new StreamableFile(response.stream);
     } catch (error) {
       if(error instanceof CustomExceptionGen) throw error;
       throw new InternalServerErrorException(error.message);
