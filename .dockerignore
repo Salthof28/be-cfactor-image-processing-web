@@ -1,22 +1,17 @@
-# Dependencies 
 node_modules
 .pnpm-store
 
-# Hasil compile lokal TypeScript ke JavaScript
 dist
 
-# Environment variables rahasia
 .env
 .env.production
 .env.development
 
-# Log files / Sampah sistem
 *.log
 npm-debug.log*
 pnpm-debug.log*
 .DS_Store
 
-# Folder Git & Dokumentasi tambahan
 .git
 .gitignore
 README.md
