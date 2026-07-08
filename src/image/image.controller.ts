@@ -40,8 +40,8 @@ export class ImageController {
       const response: { stream: ReadStream; fileName: string } = await this.imageService.download(jobId);
       res.set({
         'Content-Type': 'image/webp',
-        'Content-Disposition': `attachment; filename="${response.fileName}"`, // Bawaan BE
-        'Access-Control-Expose-Headers': 'Content-Disposition' // Izinkan FE membaca header ini
+        'Content-Disposition': `attachment; filename="${response.fileName}"`,
+        'Access-Control-Expose-Headers': 'Content-Disposition'
       });
       return new StreamableFile(response.stream);
     } catch (error) {

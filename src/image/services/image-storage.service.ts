@@ -41,7 +41,6 @@ export class ImageStorageService implements ImageStorageServiceItf  {
                 throw new ProcessedImageNotFoundException();
             }
 
-            // 4. Rakit jalur lengkap menggunakan nama file dinamis yang berhasil diintip tadi
             const fileName: string = files[0];
             const finalProcessedPath = join(processedPath, fileName);
             return {
